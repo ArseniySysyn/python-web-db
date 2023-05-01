@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>All Data</title>
+  </head>
+  <body>
+    <h1>All Data in Database</h1>
+    <table>
+      <tr>
+        <th>Name</th>
+        <th>Surname</th>
+        <th>Age</th>
+        <th>Action</th>
+      </tr>
+      {% for row in data %}
+      <tr>
+        <td>{{ row[1] }}</td>
+        <td>{{ row[2] }}</td>
+        <td>{{ row[3] }}</td>
+        <td>
+          <form method="POST" action="/delete/{{ row[0] }}">
+            <button type="submit">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+    <br>
+    <form action="/" method="GET">
+      <button type="submit">Add More Data</button>
+    </form>
+  </body>
+</html>
+
