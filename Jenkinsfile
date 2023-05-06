@@ -26,6 +26,7 @@ pipeline {
                 script {
                     def image = docker.image(DOCKER_IMAGE)
                     image.tag("${ECR_REPOSITORY}:${env.BUILD_NUMBER}")
+                    image.tag(tag)
                 }
 
                 // Push the Docker image to ECR
