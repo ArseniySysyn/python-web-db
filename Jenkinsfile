@@ -21,7 +21,7 @@ pipeline {
 
                 // Tag the Docker image with the ECR repository URL
                 script {
-                    docker.withRegistry(ECR_REPOSITORY, 'ecr:us-east-1') {
+                    docker.withRegistry(ECR_REPOSITORY, 'aws-credentials') {
                         def image = docker.image(DOCKER_IMAGE)
                         def tag = "${ECR_REPOSITORY}/myapp:${env.BUILD_NUMBER}"
                         image.tag(tag)
