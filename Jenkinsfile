@@ -8,7 +8,7 @@ pipeline {
         stage('Build') {
             steps {
                 script {
-                    docker.build(DOCKER_IMAGE, "--build-arg BUILD_NUMBER=${env.BUILD_NUMBER} .")
+                    docker.build("${ECR_REPOSITORY}/${DOCKER_IMAGE}", ".")
                 }
             }
         }
@@ -21,10 +21,8 @@ pipeline {
 
                 // Tag the Docker image with the ECR repository URL
                     script {
-                        def image = docker.image(DOCKER_IMAGE)
-                        def tag = "${ECR_REPOSITORY}/${DOCKER_IMAGE}"
-                        image.tag(tag)
-                        image.push(tag)
+                        def image = docker.image("${ECR_REPOSITORY}/${DOCKER_IMAGE}")
+                        image.push()
                     }
                 }
             }
