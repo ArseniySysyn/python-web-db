@@ -10,6 +10,9 @@ pipeline {
     }
     stages {
         stage('Build') {
+            when {
+                expression { !params.build_version }
+            }
             steps {
                 script {
                     docker.build("${ECR_REPOSITORY}/${DOCKER_IMAGE}", ".")
@@ -17,6 +20,9 @@ pipeline {
             }
         }
         stage('Push to ECR') {
+            when {
+                expression { !params.build_version }
+            }
             steps {
                 // Authenticate with the ECR registry
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'aws-credentials', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
