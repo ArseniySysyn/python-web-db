@@ -28,10 +28,11 @@ pipeline {
                 }
 
                 // Push the Docker image to ECR
-                script {
-                    docker.withRegistry(ECR_REPOSITORY, 'ecr') {
-                        docker.push("${ECR_REPOSITORY}:${env.BUILD_NUMBER}")
-                    }
+               script {
+                     def image = docker.image(DOCKER_IMAGE)
+                     def tag = "${ECR_REPOSITORY}:${env.BUILD_NUMBER}".toString()
+                     image.tag(tag)
+}
                 }
             }
         }
