@@ -24,7 +24,7 @@ pipeline {
 
                 // Tag the Docker image with the ECR repository URL
                 script {
-                    docker.tag(DOCKER_IMAGE, "${ECR_REPOSITORY}:$BUILD_NUMBER")
+                    docker.tag(DOCKER_IMAGE, "${ECR_REPOSITORY}:${env.BUILD_NUMBER.toString()}")
                 }
 
                 // Push the Docker image to ECR
