@@ -22,9 +22,9 @@ pipeline {
                 // Tag the Docker image with the ECR repository URL
                     script {
                         def image = docker.image(DOCKER_IMAGE)
-                        def tag = "${ECR_REPOSITORY}/myapp:${env.BUILD_NUMBER}"
-                        dockerImage.tag(tag)
-                        dockerImage.push(tag)
+                        def tag = "${ECR_REPOSITORY}/${DOCKER_IMAGE}"
+                        image.tag(tag)
+                        image.push(tag)
                     }
                 }
             }
