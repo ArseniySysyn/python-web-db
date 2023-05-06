@@ -3,6 +3,17 @@ provider "aws" {
 }
 
 terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 4.0.0"
+    }
+  }
+}
+
+COPY ECS MODULE TO MY REPO AND CHANGE REQUIRED VERSION
+
+terraform {
   backend "s3" {
     bucket         = "pythonwebapptfstate"
     key            = "myapp/terraform.tfstate"
@@ -10,6 +21,12 @@ terraform {
     encrypt        = true
     dynamodb_table = "my-lock-table"
   }
+}
+
+resource "aws_default_vpc" "default" {}
+
+resource "aws_default_subnet" "az1" {
+  availability_zone = "us-east-1a"
 }
 
 resource "random_password" "mysql_password" {
@@ -46,19 +63,29 @@ resource "aws_ssm_parameter" "mysql_endpoint" {
   value = aws_db_instance.mysql.endpoint
 }
 
+
+resource "aws_security_group" "app" {
+  name_prefix = "app-"
+  ingress {
+    from_port = 80
+    to_port = 80
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
 resource "aws_security_group" "mysql" {
   name_prefix = "mysql-"
   ingress {
     from_port = 3306
     to_port = 3306
     protocol = "tcp"
-    security_groups = ["sg-07996073df3da55a7"]
+    security_groups = [aws_security_group.app.id]
   }
 }
 
 resource "aws_db_instance" "mysql" {
   identifier = "my-mysql-db"
-  db_name = "mydb"
+  database_name = "mydb"
   engine = "mysql"
   engine_version = "5.7"
   instance_class = "db.t2.micro"
@@ -70,8 +97,21 @@ resource "aws_db_instance" "mysql" {
   skip_final_snapshot       = true
 }
 
-resource "aws_ecs_cluster" "ecs_cluster" {
-  name = "myapp-cluster"
+module "app_ecs_cluster" {
+  source = "trussworks/ecs-cluster/aws"
+
+  name        = var.app_ecs_cluster_name
+  environment = var.app_ecs_cluster_environment_name
+
+  image_id      = data.aws_ami.ecs_ami.image_id
+  instance_type = var.app_ecs_cluster_instance_type
+
+  vpc_id           = aws_default_vpc.default.id
+  subnet_ids       = [aws_default_subnet.az1.id]
+  desired_capacity = 1
+  max_size         = 1
+  min_size         = 1
+  security_group_ids = [aws_security_group.app.id]
 }
 
 resource "aws_ecs_task_definition" "task" {
@@ -80,30 +120,28 @@ resource "aws_ecs_task_definition" "task" {
   [
     {
       "name": "example-container",
-      "image": "<YOUR-CONTAINER-IMAGE>",
+      "image": "${var.container_image}",
       "memory": 512,
       "cpu": 256,
       "portMappings": [
         {
-          "containerPort": 80,
+          "containerPort": 5000,
           "hostPort": 80,
           "protocol": "tcp"
         }
       ],
       "environment": [
         {
-          "name": "ENV_VAR_1",
-          "value": "VALUE_1"
+          "name": "DB_USERNAME",
+          "value": "${aws_ssm_parameter.mysql_username.value}"
         },
         {
-          "name": "ENV_VAR_2",
-          "value": "VALUE_2"
-        }
-      ],
-      "secrets": [
+          "name": "DB_PASSWoRD",
+          "value": "${aws_ssm_parameter.mysql_password.value}"
+        },
         {
-          "name": "DB_PASSWORD",
-          "valueFrom": "<SECRET-ARN>"
+          "name": "DB_ENDPOINT",
+          "value": "${aws_db_instance.mysql.endpoint}"
         }
       ]
     }
@@ -111,8 +149,14 @@ resource "aws_ecs_task_definition" "task" {
   DEFINITION
 }
 
-resource "aws_ecs_service" "example_service" {
-  name            = "example-service"
-  cluster         = aws_ecs_cluster.example_cluster.id
-  task_definition = aws_ecs_task_definition.example_task.arn
+module "ecs-service" {
+  source  = "mergermarket/load-balanced-ecs-service-no-target-group/acuris"
+  version = "2.2.4"
+  
+  name = "pythonapp"
+  task_definition = aws_ecs_task_definition.task.arn
+  cluster = module.app_ecs_cluster.ecs_cluster_name
+  container_name = "pythonapp"
+  container_port = 5000
+  desired_count = "1"
 }

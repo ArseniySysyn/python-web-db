@@ -1,14 +1,18 @@
 from flask import Flask, render_template, request
-import mysql.connector
+import mysql.connector, os
 
 app = Flask(__name__)
 
+USERNAME = os.environ.get('DB_USERNAME')
+PASSWORD = os.environ.get('DB_PASSWORD')
+ENDPOINT = os.environ.get('DB_ENDPOINT')[:-5]
+
 # Set up the MySQL connection
 mydb = mysql.connector.connect(
-  host="my-mysql-db.cuyjhsbalxif.us-east-1.rds.amazonaws.com",
-  user="root",
-  password="password",
-  database="mydatabase"
+  host=ENDPOINT,
+  user=USERNAME,
+  password=PASSWORD,
+  database="mydb"
 )
 
 # Create the "users" table if it doesn't exist
