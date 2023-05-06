@@ -1,7 +1,11 @@
 pipeline {
     agent any
+
+    parameters {
+        string(name: 'build_version', defaultValue: '', description: 'Specify build version if you want to use a specific version number')
+    }
     environment {
-        DOCKER_IMAGE = "myapp:${env.BUILD_NUMBER}"
+        DOCKER_IMAGE = "myapp:${params.build_version != '' ? params.build_version : env.BUILD_NUMBER}"
         ECR_REPOSITORY = "029944322236.dkr.ecr.us-east-1.amazonaws.com"
     }
     stages {

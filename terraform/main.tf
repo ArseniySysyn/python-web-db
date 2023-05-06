@@ -69,3 +69,50 @@ resource "aws_db_instance" "mysql" {
   vpc_security_group_ids = [aws_security_group.mysql.id]
   skip_final_snapshot       = true
 }
+
+resource "aws_ecs_cluster" "ecs_cluster" {
+  name = "myapp-cluster"
+}
+
+resource "aws_ecs_task_definition" "task" {
+  family                   = "myapp"
+  container_definitions    = <<DEFINITION
+  [
+    {
+      "name": "example-container",
+      "image": "<YOUR-CONTAINER-IMAGE>",
+      "memory": 512,
+      "cpu": 256,
+      "portMappings": [
+        {
+          "containerPort": 80,
+          "hostPort": 80,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {
+          "name": "ENV_VAR_1",
+          "value": "VALUE_1"
+        },
+        {
+          "name": "ENV_VAR_2",
+          "value": "VALUE_2"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "DB_PASSWORD",
+          "valueFrom": "<SECRET-ARN>"
+        }
+      ]
+    }
+  ]
+  DEFINITION
+}
+
+resource "aws_ecs_service" "example_service" {
+  name            = "example-service"
+  cluster         = aws_ecs_cluster.example_cluster.id
+  task_definition = aws_ecs_task_definition.example_task.arn
+}
