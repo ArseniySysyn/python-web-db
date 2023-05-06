@@ -14,7 +14,7 @@ pipeline{
                      def ecrCredentials = amazonECR(credentialsId: 'aws-credentials', region: 'us-east-1')
                      docker.withRegistry("https://029944322236.dkr.ecr.us-east-1.amazonaws.com/myapp", 'ecr') {
                      dockerImage.push()
-    }
+                     }
                 }
               stage('Test'){
                   steps{
@@ -32,4 +32,5 @@ pipeline{
                      }
                 }
        }
+  }
 }
