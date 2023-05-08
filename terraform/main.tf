@@ -2,16 +2,6 @@ provider "aws" {
     region = "us-east-1"
 }
 
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = ">= 4.0.0"
-    }
-  }
-}
-
-COPY ECS MODULE TO MY REPO AND CHANGE REQUIRED VERSION
 
 terraform {
   backend "s3" {
@@ -31,7 +21,7 @@ resource "aws_default_subnet" "az1" {
 
 resource "random_password" "mysql_password" {
   length  = 16
-  special = true
+  special = false
 }
 
 resource "random_string" "mysql_username" {
@@ -48,13 +38,13 @@ locals {
 resource "aws_ssm_parameter" "mysql_username" {
   name  = "/myapp/db/username"
   type  = "SecureString"
-  value = random_string.mysql_username.result
+  value = "${local.db_username}"
 }
 
 resource "aws_ssm_parameter" "mysql_password" {
   name  = "/myapp/db/password"
   type  = "SecureString"
-  value = "${local.db_username}"
+  value = random_password.mysql_password.result
 }
 
 resource "aws_ssm_parameter" "mysql_endpoint" {
@@ -67,8 +57,8 @@ resource "aws_ssm_parameter" "mysql_endpoint" {
 resource "aws_security_group" "app" {
   name_prefix = "app-"
   ingress {
-    from_port = 80
-    to_port = 80
+    from_port = 5000  
+    to_port = 5000
     protocol = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -79,13 +69,14 @@ resource "aws_security_group" "mysql" {
     from_port = 3306
     to_port = 3306
     protocol = "tcp"
-    security_groups = [aws_security_group.app.id]
+    #security_groups = [aws_security_group.app.id]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 }
 
 resource "aws_db_instance" "mysql" {
   identifier = "my-mysql-db"
-  database_name = "mydb"
+  name = "mydb"
   engine = "mysql"
   engine_version = "5.7"
   instance_class = "db.t2.micro"
