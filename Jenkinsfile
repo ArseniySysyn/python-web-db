@@ -37,10 +37,14 @@ pipeline {
                 }
             }
         }
-        stage('Test') {
-            steps {
-                sh 'echo "Test"'
-            }
+        stage('SonarQube analysis') {
+           steps {
+              script {
+                     withSonarQubeEnv('sonar-scanner') {
+                            sh "sonar-scanner"
+                     }
+              }
+            }           
         }
         stage('Deploy') {
             steps {
