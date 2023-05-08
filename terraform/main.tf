@@ -117,7 +117,7 @@ resource "aws_ecs_task_definition" "task" {
       "portMappings": [
         {
           "containerPort": 5000,
-          "hostPort": 80,
+          "hostPort": 5000,
           "protocol": "tcp"
         }
       ],
@@ -127,7 +127,7 @@ resource "aws_ecs_task_definition" "task" {
           "value": "${aws_ssm_parameter.mysql_username.value}"
         },
         {
-          "name": "DB_PASSWoRD",
+          "name": "DB_PASSWORD",
           "value": "${aws_ssm_parameter.mysql_password.value}"
         },
         {
