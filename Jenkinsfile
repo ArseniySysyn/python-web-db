@@ -37,18 +37,19 @@ pipeline {
                 }
             }
         }
-        stage('SonarQube analysis') {
-           steps {
-              script {
-                     withSonarQubeEnv('sonar-scanner') {
-                            sh "sonar-scanner"
-                     }
-              }
-            }           
-        }
+        // stage('SonarQube analysis') {
+        //    steps {
+        //       script {
+        //              withSonarQubeEnv('sonar-scanner') {
+        //                     sh "sonar-scanner"
+        //              }
+        //       }
+        //     }           
+        // }
         stage('Deploy') {
             steps {
-                sh 'echo "Deploy"'
+                sh 'cd ./terraform && terraform init'
+                sh 'terraform apply -var "container_image=${ECR_REPOSITORY}/${DOCKER_IMAGE}"'
             }
         }
         stage('Monitor') {
