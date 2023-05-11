@@ -49,7 +49,6 @@ pipeline {
         stage('Deploy') {
             steps {
                 sh 'cd ./terraform && terraform init && terraform apply -auto-approve -var "container_image=${ECR_REPOSITORY}/${DOCKER_IMAGE}"'
-                sh ''
             }
         }
         stage('Monitor') {
