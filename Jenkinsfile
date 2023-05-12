@@ -21,6 +21,9 @@ pipeline {
         }
 
         stage('SonarQube analysis') {
+           when {
+                expression { !params.build_version }
+           }
            steps {
               script {
                      withSonarQubeEnv('sonar-scanner') {
@@ -48,11 +51,11 @@ pipeline {
             }
         }
 
-        // stage('Deploy') {
-        //     steps {
-        //         sh 'cd ./terraform && terraform init && terraform apply -auto-approve -var "container_image=${ECR_REPOSITORY}/${DOCKER_IMAGE}"'
-        //     }
-        // }
+        stage('Deploy') {
+            steps {
+                sh 'cd ./terraform && terraform init && terraform apply -auto-approve -var "container_image=${ECR_REPOSITORY}/${DOCKER_IMAGE}"'
+            }
+        }
         stage('Monitor') {
             steps {
                 sh 'echo "Monitor"'
