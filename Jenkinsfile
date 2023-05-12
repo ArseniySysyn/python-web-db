@@ -19,6 +19,16 @@ pipeline {
                 }
             }
         }
+
+        stage('SonarQube analysis') {
+           steps {
+              script {
+                     withSonarQubeEnv('sonar-scanner') {
+                            sh "sonar-scanner"
+                     }
+              }
+            }           
+        }
         stage('Push to ECR') {
             when {
                 expression { !params.build_version }
@@ -37,20 +47,12 @@ pipeline {
                 }
             }
         }
-        // stage('SonarQube analysis') {
-        //    steps {
-        //       script {
-        //              withSonarQubeEnv('sonar-scanner') {
-        //                     sh "sonar-scanner"
-        //              }
-        //       }
-        //     }           
+
+        // stage('Deploy') {
+        //     steps {
+        //         sh 'cd ./terraform && terraform init && terraform apply -auto-approve -var "container_image=${ECR_REPOSITORY}/${DOCKER_IMAGE}"'
+        //     }
         // }
-        stage('Deploy') {
-            steps {
-                sh 'cd ./terraform && terraform init && terraform apply -auto-approve -var "container_image=${ECR_REPOSITORY}/${DOCKER_IMAGE}"'
-            }
-        }
         stage('Monitor') {
             steps {
                 sh 'echo "Monitor"'
