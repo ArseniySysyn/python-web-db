@@ -62,4 +62,11 @@ pipeline {
             }
         }
     }
+    post {
+        always {
+            emailext subject: "Jenkins Build ${currentBuild.result}: ${env.JOB_NAME} #${env.BUILD_NUMBER}", 
+                      body: "${env.JOB_NAME} #${env.BUILD_NUMBER} has finished with result ${currentBuild.result}.", 
+                      to: env.EMAIL
+        }
+    }
 }
